@@ -82,7 +82,7 @@ class Trip {
       }
       return field.toString();
     }
-    
+
     // Helper function to extract Name from Many2one field
     String extractMany2oneName(dynamic field) {
       if (field == null || field == false) return '';
@@ -111,10 +111,10 @@ class Trip {
             extractMany2oneId(json['departure_country_id']) ?? '',
         destinationCountryId:
             extractMany2oneId(json['destination_country_id']) ?? '',
-        departureCountryName:
-            extractMany2oneName(json['departure_country_id']),
-        destinationCountryName:
-            extractMany2oneName(json['destination_country_id']),
+        departureCountryName: extractMany2oneName(json['departure_country_id']),
+        destinationCountryName: extractMany2oneName(
+          json['destination_country_id'],
+        ),
         departureCity: json['departure_city'] ?? '',
         destinationCity: json['destination_city'] ?? '',
         tripType: TripType.values.firstWhere(
@@ -318,7 +318,8 @@ class Trip {
       departureCountryId: departureCountryId ?? this.departureCountryId,
       destinationCountryId: destinationCountryId ?? this.destinationCountryId,
       departureCountryName: departureCountryName ?? this.departureCountryName,
-      destinationCountryName: destinationCountryName ?? this.destinationCountryName,
+      destinationCountryName:
+          destinationCountryName ?? this.destinationCountryName,
       departureCity: departureCity ?? this.departureCity,
       destinationCity: destinationCity ?? this.destinationCity,
       tripType: tripType ?? this.tripType,

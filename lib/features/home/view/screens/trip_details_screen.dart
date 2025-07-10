@@ -195,10 +195,10 @@ class TripDetailsView extends StatelessWidget {
 
   Widget _buildRouteSection() {
     // Use the country name directly from the Trip model
-    String departureCountry = trip.departureCountryName.isNotEmpty 
-        ? trip.departureCountryName 
+    String departureCountry = trip.departureCountryName.isNotEmpty
+        ? trip.departureCountryName
         : TripUtils.getDisplayNameFromMany2One(trip.departureCountryId);
-        
+
     String destinationCountry = trip.destinationCountryName.isNotEmpty
         ? trip.destinationCountryName
         : TripUtils.getDisplayNameFromMany2One(trip.destinationCountryId);

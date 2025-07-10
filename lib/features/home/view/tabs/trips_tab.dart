@@ -89,7 +89,6 @@ class _TripsTabState extends State<TripsTab> {
                 Expanded(child: _buildTripsList(state)),
               ],
             ),
-            // Removed "create new trip" floating action button
           );
         },
       ),
@@ -257,21 +256,23 @@ class _TripsTabState extends State<TripsTab> {
               child: Row(
                 children:
                     [
-                      'Tous',
-                      'en cours',
-                      'terminé',
-                      'brouillon',
-                      'en retard',
-                      'annulé',
-                    ].map((status) {
-                      final isSelected = currentStatus == status;
+                      {'value': 'Tous', 'label': 'Tous'},
+                      {'value': 'in_progress', 'label': 'En cours'},
+                      {'value': 'done', 'label': 'Terminé'},
+                      {'value': 'draft', 'label': 'Brouillon'},
+                      {'value': 'delivered', 'label': 'Livré'},
+                      {'value': 'cancelled', 'label': 'Annulé'},
+                    ].map((statusMap) {
+                      final value = statusMap['value'] as String;
+                      final label = statusMap['label'] as String;
+                      final isSelected = currentStatus == value;
                       return Padding(
                         padding: EdgeInsets.only(right: 8.w),
                         child: FilterChipWidget(
-                          label: status,
+                          label: label,
                           isSelected: isSelected,
                           onSelected: (selected) {
-                            _tripsCubit.applyFilters(status: status);
+                            _tripsCubit.applyFilters(status: value);
                           },
                         ),
                       );
@@ -293,11 +294,11 @@ class _TripsTabState extends State<TripsTab> {
     if (state is TripsLoaded) {
       totalTrips = state.filteredTrips.length.toString();
       ongoingTrips = state.filteredTrips
-          .where((trip) => trip.state.name.toLowerCase() == 'en cours')
+          .where((trip) => trip.state.name.toLowerCase() == 'in_progress')
           .length
           .toString();
       completedTrips = state.filteredTrips
-          .where((trip) => trip.state.name.toLowerCase() == 'terminé')
+          .where((trip) => trip.state.name.toLowerCase() == 'done')
           .length
           .toString();
     }
@@ -386,149 +387,6 @@ class _TripsTabState extends State<TripsTab> {
     }
   }
 
-  String _formatDateTime(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} à ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'draft':
-      case 'brouillon':
-        return Colors.grey;
-      case 'confirmed':
-      case 'confirmé':
-        return Colors.blue;
-      case 'in_progress':
-      case 'en cours':
-        return AppColors.warning;
-      case 'delivered':
-      case 'livré':
-        return Colors.lightGreen;
-      case 'returned':
-      case 'retourné':
-        return Colors.teal;
-      case 'done':
-      case 'terminé':
-        return Colors.green;
-      case 'cancelled':
-      case 'annulé':
-        return Colors.red;
-      default:
-        return AppColors.primary;
-    }
-  }
-
-  String _getStatusName(String status) {
-    switch (status.toLowerCase()) {
-      case 'draft':
-        return 'Brouillon';
-      case 'confirmed':
-        return 'Confirmé';
-      case 'in_progress':
-        return 'En cours';
-      case 'delivered':
-        return 'Livré';
-      case 'returned':
-        return 'Retourné';
-      case 'done':
-        return 'Terminé';
-      case 'cancelled':
-        return 'Annulé';
-      default:
-        return status;
-    }
-  }
-
-  String _getTripTypeName(String type) {
-    switch (type.toLowerCase()) {
-      case 'one_way':
-        return 'Aller simple';
-      case 'round_trip':
-        return 'Aller-retour';
-      default:
-        return type;
-    }
-  }
-
-  String _getServiceTypeName(String type) {
-    switch (type.toLowerCase()) {
-      case 'cargo':
-        return 'Transport de marchandises';
-      case 'passenger':
-        return 'Transport de passagers';
-      case 'mixed':
-        return 'Transport mixte';
-      default:
-        return type;
-    }
-  }
-
-  Widget _detailSection({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(12.w),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12.r),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: children,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: AppColors.grey700,
-              ),
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // These utility methods have been moved to TripUtils class
+  // and are no longer used in this file.
 }

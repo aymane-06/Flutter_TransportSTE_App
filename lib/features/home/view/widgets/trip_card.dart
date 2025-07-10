@@ -247,7 +247,8 @@ class TripCard extends StatelessWidget {
                                       SizedBox(width: 4.w),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               trip['departureCity'] ?? 'N/A',
@@ -256,11 +257,16 @@ class TripCard extends StatelessWidget {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             Text(
-                                              trip['departureCountryName'] != null && 
-                                              trip['departureCountryName'].toString().isNotEmpty ? 
-                                              trip['departureCountryName'].toString() : 'N/A',
+                                              trip['departureCountryName'] !=
+                                                          null &&
+                                                      trip['departureCountryName']
+                                                          .toString()
+                                                          .isNotEmpty
+                                                  ? trip['departureCountryName']
+                                                        .toString()
+                                                  : 'N/A',
                                               style: TextStyle(
-                                                fontSize: 11.sp, 
+                                                fontSize: 11.sp,
                                                 color: Colors.grey[600],
                                                 fontWeight: FontWeight.w400,
                                               ),
@@ -292,7 +298,8 @@ class TripCard extends StatelessWidget {
                                       SizedBox(width: 4.w),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               trip['destinationCity'] ?? 'N/A',
@@ -301,11 +308,16 @@ class TripCard extends StatelessWidget {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             Text(
-                                              trip['destinationCountryName'] != null && 
-                                              trip['destinationCountryName'].toString().isNotEmpty ? 
-                                              trip['destinationCountryName'].toString() : 'N/A',
+                                              trip['destinationCountryName'] !=
+                                                          null &&
+                                                      trip['destinationCountryName']
+                                                          .toString()
+                                                          .isNotEmpty
+                                                  ? trip['destinationCountryName']
+                                                        .toString()
+                                                  : 'N/A',
                                               style: TextStyle(
-                                                fontSize: 11.sp, 
+                                                fontSize: 11.sp,
                                                 color: Colors.grey[600],
                                                 fontWeight: FontWeight.w400,
                                               ),

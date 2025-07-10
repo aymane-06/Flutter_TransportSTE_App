@@ -16,11 +16,15 @@ void main() {
     }
     return '';
   }
-  
+
   // Extract the names
-  final departureCountryName = extractMany2oneName(json['departure_country_id']);
-  final destinationCountryName = extractMany2oneName(json['destination_country_id']);
-  
+  final departureCountryName = extractMany2oneName(
+    json['departure_country_id'],
+  );
+  final destinationCountryName = extractMany2oneName(
+    json['destination_country_id'],
+  );
+
   // Print the results
   debugPrint('Departure country name: $departureCountryName');
   debugPrint('Destination country name: $destinationCountryName');
