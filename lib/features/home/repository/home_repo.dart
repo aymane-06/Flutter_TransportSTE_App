@@ -62,14 +62,13 @@ class HomeRepoImp extends HomeRepo {
 
       final response = apiRes.data!;
 
-      // For Odoo 18, the response structure is usually in response.data['result']
       final userData = response.data['result'];
 
       if (userData == null || (userData is List && userData.isEmpty)) {
         return Left(ServerFailure(message: 'Profil utilisateur non trouvé'));
       }
 
-      // userData should be a list with one user object
+      
       final userJson = userData is List ? userData[0] : userData;
 
       final user = UserModel.fromJson(userJson);
