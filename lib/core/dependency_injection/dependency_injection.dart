@@ -6,9 +6,11 @@ import '../../features/auth/repository/auth_repo.dart';
 import '../../features/auth/view_model/login/login_cubit.dart';
 import '../../features/auth/view_model/api_config_cubit/api_config_cubit.dart';
 import '../../features/home/repository/home_repo.dart';
+import '../../features/home/repository/reports_repo.dart';
 import '../../features/home/view_model/home_cubit/home_cubit.dart';
 import '../../features/home/view_model/trips_cubit/trips_cubit.dart';
 import '../../features/home/view_model/expenses_cubit/expenses_cubit.dart';
+import '../../features/home/view_model/reports_cubit/reports_cubit.dart';
 import '../services/api_service.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -48,6 +50,13 @@ Future<void> setupDependencyInjection() async {
     ),
   );
 
+  getIt.registerLazySingleton<ReportsRepo>(
+    () => ReportsRepoImp(
+      apiService: getIt<ApiService>(),
+      preferences: getIt<SharedPreferences>(),
+    ),
+  );
+
   // Cubits
   getIt.registerFactory<LoginCubit>(
     () => LoginCubit(authRepo: getIt<AuthRepo>()),
@@ -66,4 +75,8 @@ Future<void> setupDependencyInjection() async {
   );
 
   getIt.registerFactory<ExpensesCubit>(() => ExpensesCubit(getIt<HomeRepo>()));
+
+  getIt.registerFactory<ReportsCubit>(
+    () => ReportsCubit(reportsRepo: getIt<ReportsRepo>()),
+  );
 }
