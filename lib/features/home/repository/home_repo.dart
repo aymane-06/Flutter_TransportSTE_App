@@ -16,6 +16,16 @@ abstract class HomeRepo {
   Future<Either<Failure, Unit>> updateUserProfile(UserModel user);
   Future<Either<Failure, List<TripExpense>>> getTripExpenses(String tripId);
   Future<Either<Failure, List<TripRevenue>>> getTripRevenues(String tripId);
+
+  // Additional expense methods
+  Future<List<TripExpense>> getExpenses({
+    String? tripId,
+    String? searchQuery,
+    ExpenseType? expenseType,
+  });
+  Future<void> createExpense(TripExpense expense);
+  Future<void> updateExpense(TripExpense expense);
+  Future<void> deleteExpense(String expenseId);
 }
 
 class HomeRepoImp extends HomeRepo {
@@ -68,7 +78,6 @@ class HomeRepoImp extends HomeRepo {
         return Left(ServerFailure(message: 'Profil utilisateur non trouvé'));
       }
 
-      
       final userJson = userData is List ? userData[0] : userData;
 
       final user = UserModel.fromJson(userJson);
@@ -316,7 +325,7 @@ class HomeRepoImp extends HomeRepo {
           .where((trip) => trip != null)
           .cast<Trip>()
           .toList();
-          print(trips);
+      print(trips);
 
       print('Successfully parsed ${trips.length} trips');
       return Right(trips);
@@ -655,5 +664,351 @@ class HomeRepoImp extends HomeRepo {
       'totalExpenses': totalExpenses,
       'activities': activities,
     };
+  }
+
+  // Additional expense methods implementation
+  @override
+  Future<List<TripExpense>> getExpenses({
+    String? tripId,
+    String? searchQuery,
+    ExpenseType? expenseType,
+  }) async {
+    try {
+      final userId = _preferences.getInt('user_id');
+      if (userId == null) {
+        throw Exception('User ID not found');
+      }
+
+      // Build domain filters
+      List<List<dynamic>> domain = [
+        ['create_uid', '=', userId],
+      ];
+
+      if (tripId != null && tripId != 'all') {
+        domain.add(['trip_id', '=', int.parse(tripId)]);
+      }
+
+      if (expenseType != null) {
+        domain.add(['expense_type', '=', expenseType.name]);
+      }
+
+      final apiRes = await _apiService.post(
+        '/web/dataset/call_kw/transport.trip.expense/search_read',
+        params: {
+          'model': 'transport.trip.expense',
+          'method': 'search_read',
+          'args': [],
+          'kwargs': {
+            'domain': domain,
+            'fields': [
+              'id',
+              'trip_id',
+              'name',
+              'expense_type',
+              'amount',
+              'currency_id',
+              'date',
+              'location',
+              'supplier',
+              'receipt_number',
+              'notes',
+              'vehicle_id',
+              'driver_id',
+              'company_id',
+            ],
+            'limit': 100,
+            'offset': 0,
+            'order': 'date desc',
+          },
+        },
+      );
+
+      if (!apiRes.isSuccess) {
+        throw Exception(
+          'Failed to load expenses: ${apiRes.error?.message ?? "Unknown error"}',
+        );
+      }
+
+      final data = apiRes.data!.data;
+      final records = data['result'] as List<dynamic>;
+
+      List<TripExpense> expenses = records.map((record) {
+        return TripExpense.fromJson(record as Map<String, dynamic>);
+      }).toList();
+
+      // Apply search query filter if provided
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        expenses = expenses.where((expense) {
+          final query = searchQuery.toLowerCase();
+          return expense.name.toLowerCase().contains(query) ||
+              (expense.supplier?.toLowerCase().contains(query) ?? false) ||
+              (expense.location?.toLowerCase().contains(query) ?? false);
+        }).toList();
+      }
+
+      return expenses;
+    } catch (e) {
+      throw Exception('Error loading expenses: $e');
+    }
+  }  @override
+  Future<void> createExpense(TripExpense expense) async {
+    try {
+      // Remove id from the data for creation
+      final expenseData = expense.toJson();
+      expenseData.remove('id');
+      
+      print('Creating expense with data: $expenseData');
+      
+      final apiRes = await _apiService.post(
+        '/web/dataset/call_kw/transport.trip.expense/create',
+        params: {
+          'model': 'transport.trip.expense',
+          'method': 'create',
+          'args': [expenseData],
+          'kwargs': {},
+        },
+      );
+
+      print('API Response: ${apiRes.data?.data}');
+
+      if (!apiRes.isSuccess) {
+        throw Exception(
+          'Failed to create expense: ${apiRes.error?.message ?? "Unknown error"}',
+        );
+      }
+
+      // In Odoo 18, create returns the ID of the created record
+      final result = apiRes.data!.data['result'];
+      print('Expense created with ID: $result');
+      
+      if (result == null || result == false) {
+        throw Exception('Create operation failed: result was $result');
+      }
+    } catch (e) {
+      print('Error creating expense: $e');
+      throw Exception('Error creating expense: $e');
+    }
+  }
+
+  @override
+  Future<void> updateExpense(TripExpense expense) async {
+    try {
+      if (expense.id == null || expense.id!.isEmpty) {
+        throw Exception('Cannot update expense without ID');
+      }
+
+      // Remove id from the data for update
+      final expenseData = expense.toJson();
+      expenseData.remove('id');
+      
+      print('Updating expense with ID: ${expense.id}');
+      print('Update data: $expenseData');
+
+      final apiRes = await _apiService.post(
+        '/web/dataset/call_kw/transport.trip.expense/write',
+        params: {
+          'model': 'transport.trip.expense',
+          'method': 'write',
+          'args': [
+            [int.parse(expense.id!)],
+            expenseData,
+          ],
+          'kwargs': {},
+        },
+      );
+
+      print('API Response: ${apiRes.data?.data}');
+
+      if (!apiRes.isSuccess) {
+        throw Exception(
+          'Failed to update expense: ${apiRes.error?.message ?? "Unknown error"}',
+        );
+      }
+
+      // In Odoo 18, write returns true if successful
+      final result = apiRes.data!.data['result'];
+      print('Expense updated successfully: $result');
+      
+      if (result != true) {
+        throw Exception('Update operation failed: result was $result');
+      }
+    } catch (e) {
+      print('Error updating expense: $e');
+      throw Exception('Error updating expense: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteExpense(String expenseId) async {
+    try {
+      if (expenseId.isEmpty) {
+        throw Exception('Cannot delete expense without ID');
+      }
+      
+      print('Deleting expense with ID: "$expenseId"');
+      
+      // Get current user ID for permission checking
+      final userId = _preferences.getInt('user_id');
+      print('Current user ID: $userId');
+      
+      // Validate that the ID is numeric
+      final numericId = int.tryParse(expenseId.trim());
+      if (numericId == null) {
+        throw Exception('Invalid expense ID format: "$expenseId"');
+      }
+      
+      print('Parsed numeric ID: $numericId');
+
+      // First, let's check if the record exists by trying to read it
+      final checkRes = await _apiService.post(
+        '/web/dataset/call_kw/transport.trip.expense/read',
+        params: {
+          'model': 'transport.trip.expense',
+          'method': 'read',
+          'args': [
+            [numericId],
+            ['id', 'name', 'create_uid'],
+          ],
+          'kwargs': {},
+        },
+      );
+
+      print('Check record response: ${checkRes.data}');
+      
+      if (!checkRes.isSuccess) {
+        throw Exception('Expense not found or permission denied');
+      }
+
+      // Now proceed with deletion
+      final requestParams = {
+        'model': 'transport.trip.expense',
+        'method': 'unlink',
+        'args': [
+          [numericId],
+        ],
+        'kwargs': {},
+      };
+      
+      print('Delete request params: $requestParams');
+
+      final apiRes = await _apiService.post(
+        '/web/dataset/call_kw/transport.trip.expense/unlink',
+        params: requestParams,
+      );
+
+      print('Delete API Raw Response: ${apiRes.data}');
+      print('Delete API Response Type: ${apiRes.data.runtimeType}');
+      print('Delete API Success: ${apiRes.isSuccess}');
+      print('Delete API Error: ${apiRes.error}');
+
+      if (!apiRes.isSuccess) {
+        final errorMessage = apiRes.error?.message ?? "Unknown error";
+        print('Delete API Error: $errorMessage');
+        throw Exception('Failed to delete expense: $errorMessage');
+      }
+
+      // If the API call was successful (no error), we can assume the delete worked
+      // regardless of the specific return value format
+      print('Delete API call completed successfully');
+      
+      // Optional: Check response structure if available
+      if (apiRes.data?.data != null) {
+        final responseData = apiRes.data!.data;
+        print('Full response data: $responseData');
+
+        final result = responseData['result'];
+        print('Delete result: $result (type: ${result.runtimeType})');
+        
+        // Only throw an error if the result is explicitly false
+        if (result == false) {
+          throw Exception('Delete operation explicitly failed: record may not exist or permission denied');
+        }
+      }
+      
+      // Optional: Verify deletion by trying to read the record
+      try {
+        final verifyRes = await _apiService.post(
+          '/web/dataset/call_kw/transport.trip.expense/read',
+          params: {
+            'model': 'transport.trip.expense',
+            'method': 'read',
+            'args': [
+              [numericId],
+              ['id', 'name'],
+            ],
+            'kwargs': {},
+          },
+        );
+        
+        print('Verification response success: ${verifyRes.isSuccess}');
+        print('Verification response: ${verifyRes.data}');
+        
+        // If we can still read the record, deletion failed
+        if (verifyRes.isSuccess && verifyRes.data?.data != null) {
+          final verifyResult = verifyRes.data!.data['result'];
+          print('Verification result: $verifyResult');
+          
+          // If result is not null/false and contains data, the record still exists
+          if (verifyResult != null && verifyResult != false) {
+            if (verifyResult is List && verifyResult.isNotEmpty) {
+              throw Exception('CRITICAL: Record still exists after delete attempt - deletion failed');
+            } else if (verifyResult is Map && verifyResult.isNotEmpty) {
+              throw Exception('CRITICAL: Record still exists after delete attempt - deletion failed');
+            }
+          }
+        }
+        
+        print('Verification passed: Record appears to be deleted');
+      } catch (e) {
+        // If we get an error reading the record, it might be deleted
+        print('Verification read failed: $e');
+        
+        // Check if the error indicates the record doesn't exist
+        if (e.toString().contains('not found') || 
+            e.toString().contains('does not exist') ||
+            e.toString().contains('MissingError')) {
+          print('Record confirmed deleted by error message');
+        } else {
+          print('Warning: Could not verify deletion due to error');
+        }
+      }
+      // Alternative verification: Use search_read to check if record exists
+      try {
+        final searchRes = await _apiService.post(
+          '/web/dataset/call_kw/transport.trip.expense/search_read',
+          params: {
+            'model': 'transport.trip.expense',
+            'method': 'search_read',
+            'args': [],
+            'kwargs': {
+              'domain': [['id', '=', numericId]],
+              'fields': ['id', 'name'],
+              'limit': 1,
+            },
+          },
+        );
+        
+        print('Search verification response success: ${searchRes.isSuccess}');
+        print('Search verification response: ${searchRes.data}');
+        
+        if (searchRes.isSuccess && searchRes.data?.data != null) {
+          final searchResult = searchRes.data!.data['result'];
+          print('Search result: $searchResult');
+          
+          if (searchResult is List && searchResult.isNotEmpty) {
+            throw Exception('CRITICAL: Record found in search after delete - deletion failed');
+          } else {
+            print('Search verification passed: Record not found in search');
+          }
+        }
+      } catch (e) {
+        print('Search verification failed: $e');
+      }
+      
+      print('Expense deletion process completed');
+    } catch (e) {
+      print('Error deleting expense: $e');
+      rethrow; // Re-throw to let the cubit handle it
+    }
   }
 }

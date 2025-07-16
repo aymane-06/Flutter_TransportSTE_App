@@ -83,22 +83,74 @@ class TripExpense {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'trip_id': tripId,
-      'name': name,
-      'expense_type': expenseType.name,
-      'amount': amount,
-      'currency_id': currencyId,
-      'date': date.toIso8601String().split('T')[0], // Date only
-      'location': location,
-      'supplier': supplier,
-      'receipt_number': receiptNumber,
-      'notes': notes,
-      'vehicle_id': vehicleId,
-      'driver_id': driverId,
-      'company_id': companyId,
-    };
+    final data = <String, dynamic>{};
+    
+    // Only include id if it's not null and not empty
+    if (id != null && id!.isNotEmpty) {
+      data['id'] = id;
+    }
+    
+    // Handle trip_id - required field for Odoo
+    if (tripId.isNotEmpty) {
+      final tripIdInt = int.tryParse(tripId);
+      if (tripIdInt != null) {
+        data['trip_id'] = tripIdInt;
+      }
+    }
+    
+    // Required fields
+    data['name'] = name;
+    data['expense_type'] = expenseType.name;
+    data['amount'] = amount;
+    data['date'] = date.toIso8601String().split('T')[0]; // Date only
+    
+    // Handle company_id - required field for Odoo
+    if (companyId.isNotEmpty) {
+      final companyIdInt = int.tryParse(companyId);
+      if (companyIdInt != null) {
+        data['company_id'] = companyIdInt;
+      }
+    }
+    
+    // Optional fields - only include if not null/empty
+    if (currencyId != null && currencyId!.isNotEmpty) {
+      final currencyIdInt = int.tryParse(currencyId!);
+      if (currencyIdInt != null) {
+        data['currency_id'] = currencyIdInt;
+      }
+    }
+    
+    if (location != null && location!.isNotEmpty) {
+      data['location'] = location;
+    }
+    
+    if (supplier != null && supplier!.isNotEmpty) {
+      data['supplier'] = supplier;
+    }
+    
+    if (receiptNumber != null && receiptNumber!.isNotEmpty) {
+      data['receipt_number'] = receiptNumber;
+    }
+    
+    if (notes != null && notes!.isNotEmpty) {
+      data['notes'] = notes;
+    }
+    
+    if (vehicleId != null && vehicleId!.isNotEmpty) {
+      final vehicleIdInt = int.tryParse(vehicleId!);
+      if (vehicleIdInt != null) {
+        data['vehicle_id'] = vehicleIdInt;
+      }
+    }
+    
+    if (driverId != null && driverId!.isNotEmpty) {
+      final driverIdInt = int.tryParse(driverId!);
+      if (driverIdInt != null) {
+        data['driver_id'] = driverIdInt;
+      }
+    }
+    
+    return data;
   }
 
   TripExpense copyWith({

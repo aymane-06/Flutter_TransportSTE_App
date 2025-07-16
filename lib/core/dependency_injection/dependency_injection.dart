@@ -8,6 +8,7 @@ import '../../features/auth/view_model/api_config_cubit/api_config_cubit.dart';
 import '../../features/home/repository/home_repo.dart';
 import '../../features/home/view_model/home_cubit/home_cubit.dart';
 import '../../features/home/view_model/trips_cubit/trips_cubit.dart';
+import '../../features/home/view_model/expenses_cubit/expenses_cubit.dart';
 import '../services/api_service.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -63,4 +64,6 @@ Future<void> setupDependencyInjection() async {
   getIt.registerFactory<TripsCubit>(
     () => TripsCubit(homeRepo: getIt<HomeRepo>()),
   );
+
+  getIt.registerFactory<ExpensesCubit>(() => ExpensesCubit(getIt<HomeRepo>()));
 }
