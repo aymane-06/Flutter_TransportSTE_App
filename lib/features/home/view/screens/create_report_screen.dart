@@ -31,7 +31,13 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   // Form state
   ReportType _selectedType = ReportType.incident;
   ReportPriority _selectedPriority = ReportPriority.medium;
-  DateTime _selectedDate = DateTime(2024, 7, 16, 10, 0); // Use a fixed past date to avoid future date validation error
+  DateTime _selectedDate = DateTime(
+    2024,
+    7,
+    16,
+    10,
+    0,
+  ); // Use a fixed past date to avoid future date validation error
   bool _policeReport = false;
   bool _insuranceClaim = false;
 
@@ -706,7 +712,11 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           context: context,
           initialDate: _selectedDate,
           firstDate: DateTime(2024, 1, 1), // Start from 2024
-          lastDate: DateTime(2024, 12, 31), // End at 2024 to avoid future date validation
+          lastDate: DateTime(
+            2024,
+            12,
+            31,
+          ), // End at 2024 to avoid future date validation
         );
         if (date != null && mounted) {
           final time = await showTimePicker(
