@@ -170,7 +170,7 @@ flutter build ipa --release
 
 ## Auteurs
 
-- **Aymane Himame** - Développeur Flutter - [@aymane-06](https://github.com/aymane-06)
+- **Aymane Himame** - Développeur Full stack - [@aymane-06](https://github.com/aymane-06)
 - **LeanSoft** - Encadrement technique et support
 
 ---
